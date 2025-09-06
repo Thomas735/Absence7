@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Absence7</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <h1>Bienvenue sur Absence7 🚀</h1>
+  <button class="btn" id="btn">Importer un calendrier</button>
+
+  <input type="file" id="fileInput" accept=".ics,.csv" style="display: none;" />
+
+  <!-- Contrôles de navigation et mode -->
+  <div class="calendar-controls">
+    <button id="prevBtn">◀</button>
+    
+    <div class="view-controls">
+      <button id="monthViewBtn" class="view-btn active">Mois</button>
+      <button id="weekViewBtn" class="view-btn">Semaine</button>
+    </div>
+    
+    <h2 id="currentDateDisplay">Janvier 2023</h2>
+    
+    <button id="nextBtn">▶</button>
+  </div>
+
+  <!-- Vue Mois (initialement cachée) -->
+  <div id="monthView" class="calendar-view">
+    <div class="month-calendar">
+      <div class="calendar-header">
+        <div class="day-header">Lun</div>
+        <div class="day-header">Mar</div>
+        <div class="day-header">Mer</div>
+        <div class="day-header">Jeu</div>
+        <div class="day-header">Ven</div>
+        <div class="day-header">Sam</div>
+        <div class="day-header">Dim</div>
+      </div>
+      <div class="calendar-grid" id="calendarGrid">
+        <!-- Les jours seront générés dynamiquement par JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Vue Semaine -->
+  <div id="weekView" class="calendar-view" style="display: none;">
+    <div class="week-calendar">
+      <div class="coin"></div>
+      <!-- Jours de la semaine -->
+      <div class="jour">Lundi</div>
+      <div class="jour">Mardi</div>
+      <div class="jour">Mercredi</div>
+      <div class="jour">Jeudi</div>
+      <div class="jour">Vendredi</div>
+      <div class="jour">Samedi</div>
+      <div class="jour">Dimanche</div>
+
+      <!-- Heures + cases -->
+      <!-- De 8h à 20h -->
+      <div class="heure">8h</div><div class="case" data-hour="8" data-day="1"></div><div class="case" data-hour="8" data-day="2"></div><div class="case" data-hour="8" data-day="3"></div><div class="case" data-hour="8" data-day="4"></div><div class="case" data-hour="8" data-day="5"></div><div class="case" data-hour="8" data-day="6"></div><div class="case" data-hour="8" data-day="7"></div>
+      <div class="heure">9h</div><div class="case" data-hour="9" data-day="1"></div><div class="case" data-hour="9" data-day="2"></div><div class="case" data-hour="9" data-day="3"></div><div class="case" data-hour="9" data-day="4"></div><div class="case" data-hour="9" data-day="5"></div><div class="case" data-hour="9" data-day="6"></div><div class="case" data-hour="9" data-day="7"></div>
+      <div class="heure">10h</div><div class="case" data-hour="10" data-day="1"></div><div class="case" data-hour="10" data-day="2"></div><div class="case" data-hour="10" data-day="3"></div><div class="case" data-hour="10" data-day="4"></div><div class="case" data-hour="10" data-day="5"></div><div class="case" data-hour="10" data-day="6"></div><div class="case" data-hour="10" data-day="7"></div>
+      <div class="heure">11h</div><div class="case" data-hour="11" data-day="1"></div><div class="case" data-hour="11" data-day="2"></div><div class="case" data-hour="11" data-day="3"></div><div class="case" data-hour="11" data-day="4"></div><div class="case" data-hour="11" data-day="5"></div><div class="case" data-hour="11" data-day="6"></div><div class="case" data-hour="11" data-day="7"></div>
+      <div class="heure">12h</div><div class="case" data-hour="12" data-day="1"></div><div class="case" data-hour="12" data-day="2"></div><div class="case" data-hour="12" data-day="3"></div><div class="case" data-hour="12" data-day="4"></div><div class="case" data-hour="12" data-day="5"></div><div class="case" data-hour="12" data-day="6"></div><div class="case" data-hour="12" data-day="7"></div>
+      <div class="heure">13h</div><div class="case" data-hour="13" data-day="1"></div><div class="case" data-hour="13" data-day="2"></div><div class="case" data-hour="13" data-day="3"></div><div class="case" data-hour="13" data-day="4"></div><div class="case" data-hour="13" data-day="5"></div><div class="case" data-hour="13" data-day="6"></div><div class="case" data-hour="13" data-day="7"></div>
+      <div class="heure">14h</div><div class="case" data-hour="14" data-day="1"></div><div class="case" data-hour="14" data-day="2"></div><div class="case" data-hour="14" data-day="3"></div><div class="case" data-hour="14" data-day="4"></div><div class="case" data-hour="14" data-day="5"></div><div class="case" data-hour="14" data-day="6"></div><div class="case" data-hour="14" data-day="7"></div>
+      <div class="heure">15h</div><div class="case" data-hour="15" data-day="1"></div><div class="case" data-hour="15" data-day="2"></div><div class="case" data-hour="15" data-day="3"></div><div class="case" data-hour="15" data-day="4"></div><div class="case" data-hour="15" data-day="5"></div><div class="case" data-hour="15" data-day="6"></div><div class="case" data-hour="15" data-day="7"></div>
+      <div class="heure">16h</div><div class="case" data-hour="16" data-day="1"></div><div class="case" data-hour="16" data-day="2"></div><div class="case" data-hour="16" data-day="3"></div><div class="case" data-hour="16" data-day="4"></div><div class="case" data-hour="16" data-day="5"></div><div class="case" data-hour="16" data-day="6"></div><div class="case" data-hour="16" data-day="7"></div>
+      <div class="heure">17h</div><div class="case" data-hour="17" data-day="1"></div><div class="case" data-hour="17" data-day="2"></div><div class="case" data-hour="17" data-day="3"></div><div class="case" data-hour="17" data-day="4"></div><div class="case" data-hour="17" data-day="5"></div><div class="case" data-hour="17" data-day="6"></div><div class="case" data-hour="17" data-day="7"></div>
+      <div class="heure">18h</div><div class="case" data-hour="18" data-day="1"></div><div class="case" data-hour="18" data-day="2"></div><div class="case" data-hour="18" data-day="3"></div><div class="case" data-hour="18" data-day="4"></div><div class="case" data-hour="18" data-day="5"></div><div class="case" data-hour="18" data-day="6"></div><div class="case" data-hour="18" data-day="7"></div>
+      <div class="heure">19h</div><div class="case" data-hour="19" data-day="1"></div><div class="case" data-hour="19" data-day="2"></div><div class="case" data-hour="19" data-day="3"></div><div class="case" data-hour="19" data-day="4"></div><div class="case" data-hour="19" data-day="5"></div><div class="case" data-hour="19" data-day="6"></div><div class="case" data-hour="19" data-day="7"></div>
+      <div class="heure">20h</div><div class="case" data-hour="20" data-day="1"></div><div class="case" data-hour="20" data-day="2"></div><div class="case" data-hour="20" data-day="3"></div><div class="case" data-hour="20" data-day="4"></div><div class="case" data-hour="20" data-day="5"></div><div class="case" data-hour="20" data-day="6"></div><div class="case" data-hour="20" data-day="7"></div>
+    </div>
+    
+    <div class="week-navigation">
+      <button id="prevWeekBtn">Semaine précédente</button>
+      <span id="weekRangeDisplay">Semaine du XX au XX XXX XXXX</span>
+      <button id="nextWeekBtn">Semaine suivante</button>
+    </div>
+  </div>
+
+  <!-- Popup pour afficher les détails de l'événement -->
+  <div id="eventPopup" class="popup">
+    <div class="popup-content">
+      <span class="close-popup">&times;</span>
+      <h3 id="popupTitle">Titre de l'événement</h3>
+      <div class="popup-details">
+        <p><strong>Date :</strong> <span id="popupDate"></span></p>
+        <p><strong>Heure :</strong> <span id="popupTime"></span></p>
+        <p><strong>Description :</strong> <span id="popupDescription"></span></p>
+        
+        <!-- Barre de progression -->
+        <div class="progress-container">
+          <p><strong>Progression :</strong> <span id="progressPercentage">0%</span></p>
+          <div class="progress-bar">
+            <div id="progressBarFill" class="progress-bar-fill" style="width: 0%"></div>
+          </div>
+          <p id="progressText">0h sur 0h d'absence</p>
+        </div>
+        
+        <!-- Bouton "Je sèche" -->
+        <button id="skipButton" class="skip-btn">Je sèche</button>
+        <button id="unskipButton" class="unskip-btn">Je n'ai pas séché</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="script.js" defer></script>
+</body>
+</html>
