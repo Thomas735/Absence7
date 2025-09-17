@@ -21,6 +21,8 @@ document.addEventListener("DOMContentLoaded", function () {
   let closePopupBtn;
   let eventProgress = {};
   let courseTotals = {}; // Pour stocker le total d'heures par code de cours
+  let icsFileContent = null;
+  let icsFileName = null;
 
   // Initialisation
   loadProgress();
@@ -44,6 +46,14 @@ document.addEventListener("DOMContentLoaded", function () {
       currentDate.setDate(currentDate.getDate() + 7);
     }
     updateDisplay();
+  });
+
+  // Ajoutez cet écouteur après les autres boutons
+  document.getElementById("resetButton").addEventListener("click", function() {
+    if (confirm("Êtes-vous sûr de vouloir tout réinitialiser ? Toutes vos données seront perdues.")) {
+        localStorage.clear();
+        location.reload();
+    }
   });
 
   // Changement de vue
@@ -73,19 +83,46 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Quand on choisit un fichier
   fileInput.addEventListener("change", () => {
-    const file = fileInput.files[0];
-    if (!file) return;
+      const file = fileInput.files[0];
+      if (!file) return;
+      console.log("Fichier choisi :", file.name);
+      icsFileName = file.name;
 
-    console.log("Fichier choisi :", file.name);
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const content = e.target.result;
-      console.log("Contenu ICS (début):", content.substring(0, 500));
-      parseICS(content);
-    };
-    reader.readAsText(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+          const content = e.target.result;
+          icsFileContent = content;
+          console.log("Contenu ICS (début):", content.substring(0, 500));
+          
+          // Sauvegarder le fichier ICS
+          saveICSFile();
+          
+          parseICS(content);
+      };
+      reader.readAsText(file);
   });
+
+  function saveICSFile() {
+    if (icsFileContent && icsFileName) {
+        localStorage.setItem('absence7_icsContent', icsFileContent);
+        localStorage.setItem('absence7_icsFileName', icsFileName);
+        console.log("📁 Fichier ICS sauvegardé");
+    }
+  }
+
+  function loadICSFile() {
+      const savedContent = localStorage.getItem('absence7_icsContent');
+      const savedName = localStorage.getItem('absence7_icsFileName');
+      
+      if (savedContent && savedName) {
+          icsFileContent = savedContent;
+          icsFileName = savedName;
+          console.log("📁 Fichier ICS chargé:", savedName);
+          
+          // Recréer l'objet File pour le réimporter
+          parseICS(savedContent);
+      }
+  }
 
   function initEventPopup() {
     eventPopup = document.getElementById("eventPopup");
@@ -238,15 +275,45 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // Fonction pour sauvegarder la progression dans le localStorage
   function saveProgress() {
-    localStorage.setItem('eventProgress', JSON.stringify(eventProgress));
+    const dataToSave = {
+        eventProgress: eventProgress,
+        currentDate: currentDate.toISOString(),
+        currentView: currentView,
+        courseTotals: courseTotals,
+        icsFileName: icsFileName // Sauvegarder aussi le nom du fichier
+    };
+    localStorage.setItem('absence7_data', JSON.stringify(dataToSave));
+    console.log("💾 Données sauvegardées");
+    
+    // Sauvegarder aussi le contenu ICS séparément
+    saveICSFile();
   }
 
   // Fonction pour charger la progression depuis le localStorage
   function loadProgress() {
-    const savedProgress = localStorage.getItem('eventProgress');
-    if (savedProgress) {
-      eventProgress = JSON.parse(savedProgress);
+    const savedData = localStorage.getItem('absence7_data');
+    if (savedData) {
+        try {
+            const data = JSON.parse(savedData);
+            eventProgress = data.eventProgress || {};
+            courseTotals = data.courseTotals || {};
+            
+            if (data.currentDate) {
+                currentDate = new Date(data.currentDate);
+            }
+            
+            if (data.currentView) {
+                currentView = data.currentView;
+            }
+            
+            console.log("📂 Données chargées");
+        } catch (e) {
+            console.error("Erreur lors du chargement des données:", e);
+        }
     }
+    
+    // Charger aussi le fichier ICS
+    loadICSFile();
   }
 
   function switchView(view) {
