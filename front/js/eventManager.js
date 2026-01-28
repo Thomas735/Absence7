@@ -67,7 +67,53 @@ export function openEventPopup(event) {
     popupTitle.textContent = title;
     popupDate.textContent = date;
     popupTime.textContent = timeDisplay;
-    popupDescription.textContent = description;
+
+    // Render Description with Clickable Professor Names
+    popupDescription.innerHTML = ''; // Clear previous content
+    if (!description || description === "Aucune description") {
+        popupDescription.textContent = description;
+    } else {
+        const lines = description.split('\n');
+        lines.forEach((line, index) => {
+            const cleanLine = line.trim();
+            const p = document.createElement('div');
+
+            // Check if this line looks like a professor name (reuse heuristic logic)
+            // Simple check: Not empty, not known metadata patterns
+            let isMetadata = false;
+            if (cleanLine.length < 3) isMetadata = true;
+            if (cleanLine.startsWith("Exporté le")) isMetadata = true;
+            if (cleanLine.includes("documents autorisés")) isMetadata = true;
+            if (cleanLine.match(/^\d+h\d+/)) isMetadata = true;
+            if (cleanLine.match(/^\d+SN-/)) isMetadata = true;
+            if (cleanLine.match(/^\(/)) isMetadata = true;
+
+            if (!isMetadata && cleanLine !== title) {
+                // Assume it's a professor or relevant info -> Make Clickable
+                const span = document.createElement('span');
+                span.textContent = cleanLine;
+                span.style.color = "#0984e3";
+                span.style.textDecoration = "underline";
+                span.style.cursor = "pointer";
+                span.className = "prof-link";
+
+                span.onclick = (e) => {
+                    e.stopPropagation();
+                    // Use GLOBAL function exposed in view.js to avoid circular dependency import
+                    if (window.openProfPopup) {
+                        window.openProfPopup(cleanLine);
+                        closeEventPopup(); // Close event details to show prof popup
+                    } else {
+                        console.error("openProfPopup not found on window");
+                    }
+                };
+                p.appendChild(span);
+            } else {
+                p.textContent = cleanLine;
+            }
+            popupDescription.appendChild(p);
+        });
+    }
 
     updateProgressBar(progressPercentageVal, stats.skippedDuration, stats.totalDuration);
 

@@ -43,6 +43,9 @@ export function initView() {
             profPopup.style.display = 'none';
         }
     });
+
+    // EXPOSE TO GLOBAL SCOPE to avoid circular dependencies with eventManager.js
+    window.openProfPopup = openProfPopup;
 }
 
 export function switchView(view) {
@@ -133,7 +136,7 @@ function toggleProfessorSignature(isSigned) {
 
     saveProgress();
     profPopup.style.display = 'none';
-    renderProfessors(); // Re-render to update UI
+    updateDisplay(); // Re-render CURRENT view (Calendar or Professors) to update UI immediately
 }
 
 function openProfPopup(name) {
