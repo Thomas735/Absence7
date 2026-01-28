@@ -187,16 +187,18 @@ body {
   cursor: pointer;
 }
 
-/* Style pour aujourd'hui - DESACTIVÉ
+/* Style pour aujourd'hui */
 .calendar-day.today {
-  background-color: transparent;
+  background-color: #e3f2fd !important;
+  /* Light Blue highligh */
+  border: 2px solid #2196f3 !important;
+  /* Blue border */
 }
 
 .calendar-day.today .day-number {
-  background-color: #f0f0f0;
-  color: inherit;
+  background-color: #2196f3;
+  color: white;
 }
-*/
 
 /* Styles pour la vue semaine */
 .week-calendar {
