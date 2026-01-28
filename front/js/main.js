@@ -1,15 +1,30 @@
-import { appState, loadProgress, saveProgress } from './state.js';
+import { appState, loadProgress, saveProgress, getCurrentCalendar, addCalendar, deleteCalendar, switchCalendar } from './state.js';
 import { initView, updateDisplay, switchView } from './view.js';
 import { initEventPopup } from './eventManager.js';
 import { parseICS } from './ics.js';
-
 import { checkSession, login, register, logout, showLoginModal, hideLoginModal } from './auth.js';
 
 document.addEventListener("DOMContentLoaded", async function () {
+    // --- REFERENCES UI ---
     const btn = document.getElementById("btn");
-    // ... references ...
+    const gestionBtn = document.getElementById("gestionBtn"); // Dropdown Button
+    const gestionDropdown = document.getElementById("gestionDropdown"); // Dropdown Content
+    const calendarList = document.getElementById("calendarList");
+    const addCalBtn = document.getElementById("addCalBtn");
+    const delCalBtn = document.getElementById("delCalBtn");
+    const professorsBtn = document.getElementById("professorsBtn");
+    const backToCalendarBtn = document.getElementById("backToCalendarBtn");
 
-    // AUTH LOGIC
+    const fileInput = document.getElementById("fileInput");
+    const prevBtn = document.getElementById("prevBtn");
+    const nextBtn = document.getElementById("nextBtn");
+    const monthViewBtn = document.getElementById("monthViewBtn");
+    const weekViewBtn = document.getElementById("weekViewBtn");
+    const prevWeekBtn = document.getElementById("prevWeekBtn");
+    const nextWeekBtn = document.getElementById("nextWeekBtn");
+
+
+    // --- AUTH LOGIC ---
     let currentUser = null;
     const authModal = document.getElementById('authModal');
     const authTitle = document.getElementById('authTitle');
@@ -24,7 +39,7 @@ document.addEventListener("DOMContentLoaded", async function () {
 
     let isLoginMode = true;
 
-    // Check Session
+    // Check Session on Load
     const session = await checkSession();
     if (session.loggedIn) {
         currentUser = session.username;
@@ -76,33 +91,99 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
 
     function startApp() {
-        // Initialisation standard
         initView();
-
-        // Load data from server then render
         loadProgress().then(() => {
-            if (appState.icsFileContent) {
-                parseICS(appState.icsFileContent);
+            // LoadProgress handles switchCalendar which calls updateDisplay
+            if (!appState.currentCalendarId && appState.calendars.length > 0) {
+                switchCalendar(appState.calendars[0].id);
             }
+
+            // Sync UI with loaded state (Buttons + Divs)
             switchView(appState.currentView);
+
             initEventPopup();
+            renderCalendarList(); // Render list once loaded
         });
     }
 
-    // STANDARD NAVIGATION (Existing code wrapped or after startApp)
-    const fileInput = document.getElementById("fileInput");
-    const prevBtn = document.getElementById("prevBtn");
-    const nextBtn = document.getElementById("nextBtn");
-    const monthViewBtn = document.getElementById("monthViewBtn");
-    const weekViewBtn = document.getElementById("weekViewBtn");
-    const prevWeekBtn = document.getElementById("prevWeekBtn");
-    const nextWeekBtn = document.getElementById("nextWeekBtn");
 
-    // ... keep existing listeners ...
+    // --- GESTION DROPDOWN LOGIC ---
 
-    // Navigation
+    function renderCalendarList() {
+        if (!calendarList) return;
+        calendarList.innerHTML = '';
+
+        appState.calendars.forEach(cal => {
+            const li = document.createElement('li');
+            li.textContent = cal.name;
+            if (cal.id === appState.currentCalendarId) {
+                li.classList.add('active');
+            }
+
+            li.addEventListener('click', (e) => {
+                e.stopPropagation(); // Prevent closing dropdown
+                switchCalendar(cal.id);
+                renderCalendarList();
+            });
+
+            calendarList.appendChild(li);
+        });
+    }
+
+    // Toggle Dropdown
+    gestionBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const isVisible = gestionDropdown.style.display === 'flex';
+        gestionDropdown.style.display = isVisible ? 'none' : 'flex';
+        if (!isVisible) renderCalendarList();
+    });
+
+    // Close Dropdown when clicking outside
+    window.addEventListener('click', (e) => {
+        if (!gestionBtn.contains(e.target) && !gestionDropdown.contains(e.target)) {
+            gestionDropdown.style.display = 'none';
+        }
+    });
+
+    // Add Calendar
+    addCalBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const name = prompt("Nom du nouveau calendrier :");
+        if (name) {
+            addCalendar(name);
+            renderCalendarList();
+        }
+    });
+
+    // Delete Calendar
+    delCalBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const cal = getCurrentCalendar();
+        if (cal) {
+            if (confirm(`Supprimer le calendrier "${cal.name}" ?`)) {
+                deleteCalendar(cal.id);
+                renderCalendarList();
+            }
+        }
+    });
+
+    // Professors View Navigation
+    professorsBtn.addEventListener('click', () => {
+        switchView('professors');
+        gestionDropdown.style.display = 'none'; // Close dropdown
+    });
+
+    backToCalendarBtn.addEventListener('click', () => {
+        switchView('month'); // Return to default view
+    });
+
+
+    // --- STANDARD NAVIGATION ---
+
     prevBtn.addEventListener("click", () => {
-        if (appState.currentView === 'month') {
+        const mode = appState.currentView === 'professors' ? appState.lastCalendarView : appState.currentView;
+
+        if (mode === 'month') {
             appState.currentDate.setMonth(appState.currentDate.getMonth() - 1);
         } else {
             appState.currentDate.setDate(appState.currentDate.getDate() - 7);
@@ -111,7 +192,9 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
 
     nextBtn.addEventListener("click", () => {
-        if (appState.currentView === 'month') {
+        const mode = appState.currentView === 'professors' ? appState.lastCalendarView : appState.currentView;
+
+        if (mode === 'month') {
             appState.currentDate.setMonth(appState.currentDate.getMonth() + 1);
         } else {
             appState.currentDate.setDate(appState.currentDate.getDate() + 7);
@@ -119,14 +202,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         updateDisplay();
     });
 
-    document.getElementById("resetButton").addEventListener("click", function () {
-        if (confirm("Êtes-vous sûr de vouloir tout réinitialiser ? Toutes vos données seront perdues.")) {
-            localStorage.clear();
-            location.reload();
-        }
-    });
-
-    // Changement de vue
     monthViewBtn.addEventListener("click", () => {
         switchView('month');
     });
@@ -135,7 +210,6 @@ document.addEventListener("DOMContentLoaded", async function () {
         switchView('week');
     });
 
-    // Navigation semaine
     prevWeekBtn.addEventListener("click", () => {
         appState.currentDate.setDate(appState.currentDate.getDate() - 7);
         updateDisplay();
@@ -146,27 +220,34 @@ document.addEventListener("DOMContentLoaded", async function () {
         updateDisplay();
     });
 
-    // Quand on clique sur "Importer un calendrier"
+    // Import ICS
     btn.addEventListener("click", () => {
         fileInput.click();
     });
 
-    // Quand on choisit un fichier
     fileInput.addEventListener("change", () => {
         const file = fileInput.files[0];
         if (!file) return;
-        console.log("Fichier choisi :", file.name);
-        appState.icsFileName = file.name;
 
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = function (e) {
             const content = e.target.result;
-            appState.icsFileContent = content;
-            console.log("Contenu ICS (début):", content.substring(0, 500));
 
-            parseICS(content);
-            saveProgress(); // Save immediately after import
+            // SAVE TO CURRENT CALENDAR
+            const cal = getCurrentCalendar();
+            if (cal) {
+                cal.icsFileContent = content;
+                cal.icsFileName = file.name;
+
+                // Parse and Save
+                parseICS(content);
+                saveProgress();
+                updateDisplay();
+            } else {
+                alert("Erreur: Aucun calendrier sélectionné.");
+            }
         };
         reader.readAsText(file);
     });
+
 });

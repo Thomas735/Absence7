@@ -12,11 +12,32 @@
     <span>Bienvenue sur Absence7 🚀</span>
     <div id="userInfo" style="display:none; font-size: 1rem;">
       <span id="usernameDisplay"></span>
-      <button id="logoutBtn" class="btn" style="background:#ff4d4d; margin-left:10px;">Déconnexion</button>
+      <div style="display: flex; flex-direction: column; align-items: flex-end; margin-left: 10px; gap: 5px;">
+        <button id="logoutBtn" class="btn" style="background:#ff4d4d;">Déconnexion</button>
+        <div style="position: relative;">
+          <button id="gestionBtn" class="btn"
+            style="background-color: #6c5ce7; font-size: 0.9rem; padding: 5px 10px;">Gestion ▼</button>
+          <div id="gestionDropdown" class="dropdown-menu" style="display: none;">
+            <h4>Mes Calendriers</h4>
+            <ul id="calendarList" class="cal-list">
+              <!-- Liste générée dynamiquement -->
+            </ul>
+            <div class="cal-controls">
+              <button id="addCalBtn" class="btn small-btn" title="Ajouter">+</button>
+              <button id="delCalBtn" class="btn small-btn" title="Supprimer">-</button>
+            </div>
+            <hr>
+            <button class="btn placeholder-btn">Paramètres</button>
+            <button class="btn placeholder-btn">Paramètres</button>
+            <button id="professorsBtn" class="btn" style="background-color: #0984e3;">Professeurs</button>
+            <button class="btn placeholder-btn">Exporter PDF</button>
+          </div>
+        </div>
+      </div>
     </div>
   </h1>
   <button class="btn" id="btn">Importer un calendrier</button>
-  <button id="resetButton" class="btn reset-btn">Tout réinitialiser</button>
+
 
   <input type="file" id="fileInput" accept=".ics,.csv" style="display: none;" />
 
@@ -48,6 +69,17 @@
     <h2 id="currentDateDisplay">Janvier 2023</h2>
 
     <button id="nextBtn">▶</button>
+  </div>
+
+  <!-- Vue Professeurs (initialement cachée) -->
+  <div id="professorsView" class="calendar-view" style="display: none; padding: 20px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+      <h2>Liste des Professeurs</h2>
+      <button id="backToCalendarBtn" class="btn" style="background-color: #636e72;">Retour au calendrier</button>
+    </div>
+    <div id="professorsList" class="professors-grid">
+      <!-- Liste générée dynamiquement -->
+    </div>
   </div>
 
   <!-- Vue Mois (initialement cachée) -->
@@ -221,6 +253,8 @@
       </div>
     </div>
   </div>
+
+
 
   <!-- Inclusion des scripts JavaScript -->
   <!-- Inclusion des modules JavaScript -->

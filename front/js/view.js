@@ -1,8 +1,8 @@
-import { appState } from './state.js';
+import { appState, saveProgress } from './state.js';
 import { openEventPopup, closeEventPopup } from './eventManager.js';
 import { hashStringToHue, formatDate, getEventId } from './utils.js';
 
-let calendarGrid, currentDateDisplay, weekRangeDisplay, monthViewBtn, weekViewBtn, monthView, weekView;
+let calendarGrid, currentDateDisplay, weekRangeDisplay, monthViewBtn, weekViewBtn, monthView, weekView, professorsView, professorsList, prevBtn, nextBtn;
 
 export function initView() {
     calendarGrid = document.getElementById("calendarGrid");
@@ -12,25 +12,45 @@ export function initView() {
     weekViewBtn = document.getElementById("weekViewBtn");
     monthView = document.getElementById("monthView");
     weekView = document.getElementById("weekView");
+    professorsView = document.getElementById("professorsView");
+    professorsList = document.getElementById("professorsList");
+    prevBtn = document.getElementById("prevBtn");
+    nextBtn = document.getElementById("nextBtn");
 }
 
 export function switchView(view) {
     appState.currentView = view;
+
+    // TRACK DATA CONTEXT
+    if (view === 'month' || view === 'week') {
+        appState.lastCalendarView = view;
+    }
+
     if (monthViewBtn && weekViewBtn) {
         monthViewBtn.classList.toggle('active', view === 'month');
         weekViewBtn.classList.toggle('active', view === 'week');
-        monthView.style.display = view === 'month' ? 'block' : 'none';
-        weekView.style.display = view === 'week' ? 'block' : 'none';
-        updateDisplay();
+
+        // Hide all first
+        if (monthView) monthView.style.display = 'none';
+        if (weekView) weekView.style.display = 'none';
+        if (professorsView) professorsView.style.display = 'none';
+
+        // Show selected
+        if (view === 'month' && monthView) {
+            monthView.style.display = 'block';
+            updateMonthView();
+        } else if (view === 'week' && weekView) {
+            weekView.style.display = 'block';
+            updateWeekView();
+        } else if (view === 'professors' && professorsView) {
+            professorsView.style.display = 'block';
+            renderProfessors();
+        }
     }
 }
 
 export function updateDisplay() {
-    if (appState.currentView === 'month') {
-        updateMonthView();
-    } else {
-        updateWeekView();
-    }
+    switchView(appState.currentView);
 }
 
 function updateMonthView() {
@@ -43,8 +63,6 @@ function updateMonthView() {
 function updateWeekView() {
     const startOfWeek = new Date(appState.currentDate);
     // IMPORTANTE : On remet l'heure à 00:00:00 du matin pour éviter les décalages
-    // Si on garde l'heure actuelle (ex: 21h), la "fin de semaine" sera lundi prochain à 21h,
-    // ce qui inclura les cours du lundi matin suivant !
     startOfWeek.setHours(0, 0, 0, 0);
 
     const day = startOfWeek.getDay();
@@ -67,6 +85,89 @@ function updateWeekView() {
     });
 
     renderWeekEvents(startOfWeek);
+}
+
+
+function renderProfessors() {
+    if (!professorsList) return;
+    professorsList.innerHTML = '';
+
+    // FILTER EVENTS BY DATE RANGE
+    let startDate, endDate;
+    const viewMode = appState.lastCalendarView || 'week'; // Default to week logic
+
+    if (viewMode === 'month') {
+        const year = appState.currentDate.getFullYear();
+        const month = appState.currentDate.getMonth();
+        startDate = new Date(year, month, 1);
+        endDate = new Date(year, month + 1, 0, 23, 59, 59);
+    } else {
+        // Week Logic
+        const startOfWeek = new Date(appState.currentDate);
+        startOfWeek.setHours(0, 0, 0, 0);
+        const day = startOfWeek.getDay();
+        const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1);
+        startOfWeek.setDate(diff); // Monday
+
+        startDate = new Date(startOfWeek);
+        endDate = new Date(startOfWeek);
+        endDate.setDate(startDate.getDate() + 7); // Following Monday
+    }
+
+    const filteredEvents = appState.events.filter(ev => {
+        return ev.start >= startDate && ev.start < endDate;
+    });
+
+    // Extraction Logic
+    const professors = new Map(); // Name -> Set of Courses
+
+    filteredEvents.forEach(ev => {
+        if (!ev.description) return;
+
+        const lines = ev.description.split('\n');
+        // Heuristic:
+        // Exclude lines with numbers (often group or duration), "Exporté le", empty lines
+        // Look for Title Case names
+
+        lines.forEach(line => {
+            const cleanLine = line.trim();
+            if (cleanLine.length < 3) return;
+            if (cleanLine.startsWith("Exporté le")) return; // Export timestamp
+            if (cleanLine.includes("documents autorisés")) return; // Duration/Condition
+            if (cleanLine.match(/^\d+h\d+/)) return; // Duration like 1h30
+            if (cleanLine.match(/^\d+SN-/)) return; // Course Code logic
+            if (cleanLine.match(/^\(/)) return; // Parenthesis info
+
+            // Assume it is a name if it passes filters?
+            // "Ouederni Meriem"
+
+            // Refined Heuristic: If it's not the title, and not known metadata
+            if (cleanLine !== ev.title) {
+                if (!professors.has(cleanLine)) {
+                    professors.set(cleanLine, new Set());
+                }
+                professors.get(cleanLine).add(ev.title);
+            }
+        });
+    });
+
+    if (professors.size === 0) {
+        professorsList.innerHTML = `<p>Aucun professeur trouvé pour cette période (${viewMode === 'month' ? 'Mois' : 'Semaine'}).</p>`;
+        return;
+    }
+
+    professors.forEach((courses, name) => {
+        const card = document.createElement('div');
+        card.className = 'prof-card';
+
+        const courseList = Array.from(courses).slice(0, 3).join(', ') + (courses.size > 3 ? '...' : '');
+
+        card.innerHTML = `
+            <div class="prof-name">${name}</div>
+            <div class="prof-course">${courses.size} cours : ${courseList}</div>
+        `;
+        professorsList.appendChild(card);
+    });
 }
 
 function renderCalendar(year, month) {
