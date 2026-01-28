@@ -187,15 +187,16 @@ body {
   cursor: pointer;
 }
 
-/* Style pour aujourd'hui */
+/* Style pour aujourd'hui - DESACTIVÉ
 .calendar-day.today {
-  background-color: #e6f7ff;
+  background-color: transparent;
 }
 
 .calendar-day.today .day-number {
-  background-color: #6e8efb;
-  color: white;
+  background-color: #f0f0f0;
+  color: inherit;
 }
+*/
 
 /* Styles pour la vue semaine */
 .week-calendar {
@@ -207,7 +208,7 @@ body {
   margin-bottom: 20px;
 }
 
-.week-calendar > div {
+.week-calendar>div {
   border: 1px solid #ddd;
   display: flex;
   align-items: center;
@@ -245,21 +246,40 @@ body {
   background: #f0f0f0;
 }
 
+/* Empêcher le survol de la case si on survole un événément à l'intérieur */
+.case:hover:has(.week-event:hover) {
+  background: #fff;
+}
+
 .case.active {
   background-color: rgba(173, 216, 230, 0.3);
 }
 
 /* Styles pour les événements en mode semaine */
 .week-event {
+  position: absolute;
+  z-index: 10;
   font-size: 11px;
   padding: 2px;
-  margin-bottom: 2px;
-  border-radius: 2px;
-  background-color: rgba(255, 255, 255, 0.7);
-  width: 100%;
-  white-space: nowrap;
+  border-radius: 4px;
+  background-color: rgba(255, 255, 255, 0.9);
+  width: 90%;
+  left: 5%;
   overflow: hidden;
   text-overflow: ellipsis;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  line-height: 1.2;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, z-index 0s;
+}
+
+.week-event:hover {
+  transform: scale(1.02);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  z-index: 100 !important;
+  cursor: pointer;
 }
 
 .week-navigation {
@@ -388,13 +408,25 @@ body {
 
 /* Animations */
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 @keyframes slideIn {
-  from { transform: translateY(-50px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(-50px);
+    opacity: 0;
+  }
+
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 /* Ajustements responsives */
@@ -402,26 +434,26 @@ body {
   .calendar-grid {
     grid-auto-rows: minmax(100px, auto);
   }
-  
+
   .calendar-day {
     min-height: 100px;
   }
-  
+
   .day-number {
     font-size: 12px;
     width: 20px;
     height: 20px;
   }
-  
+
   .day-events {
     font-size: 10px;
   }
-  
+
   .event {
     font-size: 12px;
     padding: 4px 6px;
   }
-  
+
   .week-event {
     font-size: 12px;
     padding: 3px;
@@ -432,42 +464,43 @@ body {
   .calendar-grid {
     grid-auto-rows: minmax(80px, auto);
   }
-  
+
   .calendar-day {
     min-height: 80px;
     padding: 5px;
   }
-  
+
   .day-number {
     font-size: 11px;
     width: 18px;
     height: 18px;
   }
-  
+
   .day-events {
     margin-top: 20px;
     font-size: 9px;
   }
-  
+
   .event {
     padding: 2px 3px;
     margin-bottom: 2px;
   }
-  
+
   .calendar-controls {
     flex-direction: column;
     gap: 10px;
   }
-  
+
   .week-calendar {
     grid-template-columns: 60px repeat(7, 1fr);
     font-size: 12px;
   }
-  
-  .jour, .heure {
+
+  .jour,
+  .heure {
     font-size: 11px;
   }
-  
+
   .popup-content {
     margin: 20% auto;
     width: 85%;
@@ -479,44 +512,44 @@ body {
   body {
     margin: 10px;
   }
-  
+
   #btn {
     padding: 10px 16px;
     font-size: 14px;
   }
-  
+
   #currentDateDisplay {
     font-size: 1.2rem;
   }
-  
+
   .calendar-controls {
     padding: 10px;
   }
-  
+
   .view-btn {
     padding: 6px 12px;
     font-size: 12px;
   }
-  
+
   .week-calendar {
     grid-template-columns: 50px repeat(7, 1fr);
     font-size: 11px;
     grid-auto-rows: 40px;
   }
-  
+
   .case {
     min-height: 40px;
   }
-  
+
   .week-event {
     font-size: 9px;
   }
-  
+
   .week-navigation {
     flex-direction: column;
     gap: 10px;
   }
-  
+
   .week-navigation button {
     width: 100%;
   }

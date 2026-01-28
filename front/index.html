@@ -1,28 +1,52 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
   <meta charset="UTF-8">
   <title>Absence7</title>
   <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
-  <h1>Bienvenue sur Absence7 🚀</h1>
+  <h1 style="display: flex; justify-content: space-between; align-items: center;">
+    <span>Bienvenue sur Absence7 🚀</span>
+    <div id="userInfo" style="display:none; font-size: 1rem;">
+      <span id="usernameDisplay"></span>
+      <button id="logoutBtn" class="btn" style="background:#ff4d4d; margin-left:10px;">Déconnexion</button>
+    </div>
+  </h1>
   <button class="btn" id="btn">Importer un calendrier</button>
   <button id="resetButton" class="btn reset-btn">Tout réinitialiser</button>
 
   <input type="file" id="fileInput" accept=".ics,.csv" style="display: none;" />
 
+  <!-- Auth Modal -->
+  <div id="authModal" class="popup"
+    style="display: none; background: rgba(0,0,0,0.8); z-index: 10000; align-items: center; justify-content: center;">
+    <div class="popup-content" style="max-width: 400px; text-align: center;">
+      <h2 id="authTitle">Connexion</h2>
+      <input type="text" id="authUsername" placeholder="Nom d'utilisateur"
+        style="width: 100%; padding: 10px; margin: 10px 0;">
+      <input type="password" id="authPassword" placeholder="Mot de passe"
+        style="width: 100%; padding: 10px; margin: 10px 0;">
+      <p id="authError" style="color: red; display: none;"></p>
+      <button id="loginSubmitBtn" class="btn" style="width: 100%; margin-top: 10px;">Se connecter</button>
+      <button id="toggleAuthMode" class="btn" style="width: 100%; margin-top: 10px; background: #666;">Créer un
+        compte</button>
+    </div>
+  </div>
+
   <!-- Contrôles de navigation et mode -->
   <div class="calendar-controls">
     <button id="prevBtn">◀</button>
-    
+
     <div class="view-controls">
       <button id="monthViewBtn" class="view-btn active">Mois</button>
       <button id="weekViewBtn" class="view-btn">Semaine</button>
     </div>
-    
+
     <h2 id="currentDateDisplay">Janvier 2023</h2>
-    
+
     <button id="nextBtn">▶</button>
   </div>
 
@@ -59,21 +83,112 @@
 
       <!-- Heures + cases -->
       <!-- De 8h à 20h -->
-      <div class="heure">8h</div><div class="case" data-hour="8" data-day="1"></div><div class="case" data-hour="8" data-day="2"></div><div class="case" data-hour="8" data-day="3"></div><div class="case" data-hour="8" data-day="4"></div><div class="case" data-hour="8" data-day="5"></div><div class="case" data-hour="8" data-day="6"></div><div class="case" data-hour="8" data-day="7"></div>
-      <div class="heure">9h</div><div class="case" data-hour="9" data-day="1"></div><div class="case" data-hour="9" data-day="2"></div><div class="case" data-hour="9" data-day="3"></div><div class="case" data-hour="9" data-day="4"></div><div class="case" data-hour="9" data-day="5"></div><div class="case" data-hour="9" data-day="6"></div><div class="case" data-hour="9" data-day="7"></div>
-      <div class="heure">10h</div><div class="case" data-hour="10" data-day="1"></div><div class="case" data-hour="10" data-day="2"></div><div class="case" data-hour="10" data-day="3"></div><div class="case" data-hour="10" data-day="4"></div><div class="case" data-hour="10" data-day="5"></div><div class="case" data-hour="10" data-day="6"></div><div class="case" data-hour="10" data-day="7"></div>
-      <div class="heure">11h</div><div class="case" data-hour="11" data-day="1"></div><div class="case" data-hour="11" data-day="2"></div><div class="case" data-hour="11" data-day="3"></div><div class="case" data-hour="11" data-day="4"></div><div class="case" data-hour="11" data-day="5"></div><div class="case" data-hour="11" data-day="6"></div><div class="case" data-hour="11" data-day="7"></div>
-      <div class="heure">12h</div><div class="case" data-hour="12" data-day="1"></div><div class="case" data-hour="12" data-day="2"></div><div class="case" data-hour="12" data-day="3"></div><div class="case" data-hour="12" data-day="4"></div><div class="case" data-hour="12" data-day="5"></div><div class="case" data-hour="12" data-day="6"></div><div class="case" data-hour="12" data-day="7"></div>
-      <div class="heure">13h</div><div class="case" data-hour="13" data-day="1"></div><div class="case" data-hour="13" data-day="2"></div><div class="case" data-hour="13" data-day="3"></div><div class="case" data-hour="13" data-day="4"></div><div class="case" data-hour="13" data-day="5"></div><div class="case" data-hour="13" data-day="6"></div><div class="case" data-hour="13" data-day="7"></div>
-      <div class="heure">14h</div><div class="case" data-hour="14" data-day="1"></div><div class="case" data-hour="14" data-day="2"></div><div class="case" data-hour="14" data-day="3"></div><div class="case" data-hour="14" data-day="4"></div><div class="case" data-hour="14" data-day="5"></div><div class="case" data-hour="14" data-day="6"></div><div class="case" data-hour="14" data-day="7"></div>
-      <div class="heure">15h</div><div class="case" data-hour="15" data-day="1"></div><div class="case" data-hour="15" data-day="2"></div><div class="case" data-hour="15" data-day="3"></div><div class="case" data-hour="15" data-day="4"></div><div class="case" data-hour="15" data-day="5"></div><div class="case" data-hour="15" data-day="6"></div><div class="case" data-hour="15" data-day="7"></div>
-      <div class="heure">16h</div><div class="case" data-hour="16" data-day="1"></div><div class="case" data-hour="16" data-day="2"></div><div class="case" data-hour="16" data-day="3"></div><div class="case" data-hour="16" data-day="4"></div><div class="case" data-hour="16" data-day="5"></div><div class="case" data-hour="16" data-day="6"></div><div class="case" data-hour="16" data-day="7"></div>
-      <div class="heure">17h</div><div class="case" data-hour="17" data-day="1"></div><div class="case" data-hour="17" data-day="2"></div><div class="case" data-hour="17" data-day="3"></div><div class="case" data-hour="17" data-day="4"></div><div class="case" data-hour="17" data-day="5"></div><div class="case" data-hour="17" data-day="6"></div><div class="case" data-hour="17" data-day="7"></div>
-      <div class="heure">18h</div><div class="case" data-hour="18" data-day="1"></div><div class="case" data-hour="18" data-day="2"></div><div class="case" data-hour="18" data-day="3"></div><div class="case" data-hour="18" data-day="4"></div><div class="case" data-hour="18" data-day="5"></div><div class="case" data-hour="18" data-day="6"></div><div class="case" data-hour="18" data-day="7"></div>
-      <div class="heure">19h</div><div class="case" data-hour="19" data-day="1"></div><div class="case" data-hour="19" data-day="2"></div><div class="case" data-hour="19" data-day="3"></div><div class="case" data-hour="19" data-day="4"></div><div class="case" data-hour="19" data-day="5"></div><div class="case" data-hour="19" data-day="6"></div><div class="case" data-hour="19" data-day="7"></div>
-      <div class="heure">20h</div><div class="case" data-hour="20" data-day="1"></div><div class="case" data-hour="20" data-day="2"></div><div class="case" data-hour="20" data-day="3"></div><div class="case" data-hour="20" data-day="4"></div><div class="case" data-hour="20" data-day="5"></div><div class="case" data-hour="20" data-day="6"></div><div class="case" data-hour="20" data-day="7"></div>
+      <div class="heure">8h</div>
+      <div class="case" data-hour="8" data-day="1"></div>
+      <div class="case" data-hour="8" data-day="2"></div>
+      <div class="case" data-hour="8" data-day="3"></div>
+      <div class="case" data-hour="8" data-day="4"></div>
+      <div class="case" data-hour="8" data-day="5"></div>
+      <div class="case" data-hour="8" data-day="6"></div>
+      <div class="case" data-hour="8" data-day="7"></div>
+      <div class="heure">9h</div>
+      <div class="case" data-hour="9" data-day="1"></div>
+      <div class="case" data-hour="9" data-day="2"></div>
+      <div class="case" data-hour="9" data-day="3"></div>
+      <div class="case" data-hour="9" data-day="4"></div>
+      <div class="case" data-hour="9" data-day="5"></div>
+      <div class="case" data-hour="9" data-day="6"></div>
+      <div class="case" data-hour="9" data-day="7"></div>
+      <div class="heure">10h</div>
+      <div class="case" data-hour="10" data-day="1"></div>
+      <div class="case" data-hour="10" data-day="2"></div>
+      <div class="case" data-hour="10" data-day="3"></div>
+      <div class="case" data-hour="10" data-day="4"></div>
+      <div class="case" data-hour="10" data-day="5"></div>
+      <div class="case" data-hour="10" data-day="6"></div>
+      <div class="case" data-hour="10" data-day="7"></div>
+      <div class="heure">11h</div>
+      <div class="case" data-hour="11" data-day="1"></div>
+      <div class="case" data-hour="11" data-day="2"></div>
+      <div class="case" data-hour="11" data-day="3"></div>
+      <div class="case" data-hour="11" data-day="4"></div>
+      <div class="case" data-hour="11" data-day="5"></div>
+      <div class="case" data-hour="11" data-day="6"></div>
+      <div class="case" data-hour="11" data-day="7"></div>
+      <div class="heure">12h</div>
+      <div class="case" data-hour="12" data-day="1"></div>
+      <div class="case" data-hour="12" data-day="2"></div>
+      <div class="case" data-hour="12" data-day="3"></div>
+      <div class="case" data-hour="12" data-day="4"></div>
+      <div class="case" data-hour="12" data-day="5"></div>
+      <div class="case" data-hour="12" data-day="6"></div>
+      <div class="case" data-hour="12" data-day="7"></div>
+      <div class="heure">13h</div>
+      <div class="case" data-hour="13" data-day="1"></div>
+      <div class="case" data-hour="13" data-day="2"></div>
+      <div class="case" data-hour="13" data-day="3"></div>
+      <div class="case" data-hour="13" data-day="4"></div>
+      <div class="case" data-hour="13" data-day="5"></div>
+      <div class="case" data-hour="13" data-day="6"></div>
+      <div class="case" data-hour="13" data-day="7"></div>
+      <div class="heure">14h</div>
+      <div class="case" data-hour="14" data-day="1"></div>
+      <div class="case" data-hour="14" data-day="2"></div>
+      <div class="case" data-hour="14" data-day="3"></div>
+      <div class="case" data-hour="14" data-day="4"></div>
+      <div class="case" data-hour="14" data-day="5"></div>
+      <div class="case" data-hour="14" data-day="6"></div>
+      <div class="case" data-hour="14" data-day="7"></div>
+      <div class="heure">15h</div>
+      <div class="case" data-hour="15" data-day="1"></div>
+      <div class="case" data-hour="15" data-day="2"></div>
+      <div class="case" data-hour="15" data-day="3"></div>
+      <div class="case" data-hour="15" data-day="4"></div>
+      <div class="case" data-hour="15" data-day="5"></div>
+      <div class="case" data-hour="15" data-day="6"></div>
+      <div class="case" data-hour="15" data-day="7"></div>
+      <div class="heure">16h</div>
+      <div class="case" data-hour="16" data-day="1"></div>
+      <div class="case" data-hour="16" data-day="2"></div>
+      <div class="case" data-hour="16" data-day="3"></div>
+      <div class="case" data-hour="16" data-day="4"></div>
+      <div class="case" data-hour="16" data-day="5"></div>
+      <div class="case" data-hour="16" data-day="6"></div>
+      <div class="case" data-hour="16" data-day="7"></div>
+      <div class="heure">17h</div>
+      <div class="case" data-hour="17" data-day="1"></div>
+      <div class="case" data-hour="17" data-day="2"></div>
+      <div class="case" data-hour="17" data-day="3"></div>
+      <div class="case" data-hour="17" data-day="4"></div>
+      <div class="case" data-hour="17" data-day="5"></div>
+      <div class="case" data-hour="17" data-day="6"></div>
+      <div class="case" data-hour="17" data-day="7"></div>
+      <div class="heure">18h</div>
+      <div class="case" data-hour="18" data-day="1"></div>
+      <div class="case" data-hour="18" data-day="2"></div>
+      <div class="case" data-hour="18" data-day="3"></div>
+      <div class="case" data-hour="18" data-day="4"></div>
+      <div class="case" data-hour="18" data-day="5"></div>
+      <div class="case" data-hour="18" data-day="6"></div>
+      <div class="case" data-hour="18" data-day="7"></div>
+      <div class="heure">19h</div>
+      <div class="case" data-hour="19" data-day="1"></div>
+      <div class="case" data-hour="19" data-day="2"></div>
+      <div class="case" data-hour="19" data-day="3"></div>
+      <div class="case" data-hour="19" data-day="4"></div>
+      <div class="case" data-hour="19" data-day="5"></div>
+      <div class="case" data-hour="19" data-day="6"></div>
+      <div class="case" data-hour="19" data-day="7"></div>
+      <div class="heure">20h</div>
+      <div class="case" data-hour="20" data-day="1"></div>
+      <div class="case" data-hour="20" data-day="2"></div>
+      <div class="case" data-hour="20" data-day="3"></div>
+      <div class="case" data-hour="20" data-day="4"></div>
+      <div class="case" data-hour="20" data-day="5"></div>
+      <div class="case" data-hour="20" data-day="6"></div>
+      <div class="case" data-hour="20" data-day="7"></div>
     </div>
-    
+
     <div class="week-navigation">
       <button id="prevWeekBtn">Semaine précédente</button>
       <span id="weekRangeDisplay">Semaine du XX au XX XXX XXXX</span>
@@ -90,7 +205,7 @@
         <p><strong>Date :</strong> <span id="popupDate"></span></p>
         <p><strong>Heure :</strong> <span id="popupTime"></span></p>
         <p><strong>Description :</strong> <span id="popupDescription"></span></p>
-        
+
         <!-- Barre de progression -->
         <div class="progress-container">
           <p><strong>Progression :</strong> <span id="progressPercentage">0%</span></p>
@@ -99,14 +214,17 @@
           </div>
           <p id="progressText">0h sur 0h d'absence</p>
         </div>
-        
-        <!-- Bouton "Je sèche" -->
-        <button id="skipButton" class="skip-btn">Je sèche</button>
-        <button id="unskipButton" class="unskip-btn">Je n'ai pas séché</button>
+
+        <!-- Bouton "Absent" -->
+        <button id="skipButton" class="skip-btn">Absent</button>
+        <button id="unskipButton" class="unskip-btn">Présent</button>
       </div>
     </div>
   </div>
 
-  <script src="script.js" defer></script>
+  <!-- Inclusion des scripts JavaScript -->
+  <!-- Inclusion des modules JavaScript -->
+  <script type="module" src="js/main.js"></script>
 </body>
+
 </html>

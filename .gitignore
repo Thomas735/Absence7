@@ -1,2 +1,4 @@
 .DS_Store
 sauvegardes/
+node_modules/
+data/
