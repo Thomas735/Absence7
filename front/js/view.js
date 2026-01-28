@@ -3,6 +3,8 @@ import { openEventPopup, closeEventPopup } from './eventManager.js';
 import { hashStringToHue, formatDate, getEventId } from './utils.js';
 
 let calendarGrid, currentDateDisplay, weekRangeDisplay, monthViewBtn, weekViewBtn, monthView, weekView, professorsView, professorsList, prevBtn, nextBtn;
+let profPopup, profPopupTitle, profSignBtn, profUnsignBtn, closeProfPopupBtn;
+let currentSelectedProf = null;
 
 export function initView() {
     calendarGrid = document.getElementById("calendarGrid");
@@ -16,6 +18,31 @@ export function initView() {
     professorsList = document.getElementById("professorsList");
     prevBtn = document.getElementById("prevBtn");
     nextBtn = document.getElementById("nextBtn");
+
+    // Popup Elements
+    profPopup = document.getElementById("profPopup");
+    profPopupTitle = document.getElementById("profPopupTitle");
+    profSignBtn = document.getElementById("profSignBtn");
+    profUnsignBtn = document.getElementById("profUnsignBtn");
+    closeProfPopupBtn = document.getElementById("closeProfPopup");
+
+    // Popup Listeners
+    if (closeProfPopupBtn) {
+        closeProfPopupBtn.addEventListener("click", () => profPopup.style.display = 'none');
+    }
+    if (profSignBtn) {
+        profSignBtn.addEventListener("click", () => toggleProfessorSignature(true));
+    }
+    if (profUnsignBtn) {
+        profUnsignBtn.addEventListener("click", () => toggleProfessorSignature(false));
+    }
+
+    // Close on click outside
+    window.addEventListener("click", (e) => {
+        if (e.target === profPopup) {
+            profPopup.style.display = 'none';
+        }
+    });
 }
 
 export function switchView(view) {
@@ -88,6 +115,33 @@ function updateWeekView() {
 }
 
 
+function toggleProfessorSignature(isSigned) {
+    if (!currentSelectedProf) return;
+
+    // Ensure Set exists using fallback logic
+    if (!appState.unsignedProfessors) {
+        appState.unsignedProfessors = new Set();
+    }
+
+    if (isSigned) {
+        // "Fait signer" -> Remove from the "Not Signed" list (return to normal)
+        appState.unsignedProfessors.delete(currentSelectedProf);
+    } else {
+        // "Ne fait pas signer" -> Add to the "Not Signed" list (trigger warning)
+        appState.unsignedProfessors.add(currentSelectedProf);
+    }
+
+    saveProgress();
+    profPopup.style.display = 'none';
+    renderProfessors(); // Re-render to update UI
+}
+
+function openProfPopup(name) {
+    currentSelectedProf = name;
+    profPopupTitle.textContent = name;
+    profPopup.style.display = 'flex';
+}
+
 function renderProfessors() {
     if (!professorsList) return;
     professorsList.innerHTML = '';
@@ -125,23 +179,16 @@ function renderProfessors() {
         if (!ev.description) return;
 
         const lines = ev.description.split('\n');
-        // Heuristic:
-        // Exclude lines with numbers (often group or duration), "Exporté le", empty lines
-        // Look for Title Case names
 
         lines.forEach(line => {
             const cleanLine = line.trim();
             if (cleanLine.length < 3) return;
-            if (cleanLine.startsWith("Exporté le")) return; // Export timestamp
-            if (cleanLine.includes("documents autorisés")) return; // Duration/Condition
-            if (cleanLine.match(/^\d+h\d+/)) return; // Duration like 1h30
-            if (cleanLine.match(/^\d+SN-/)) return; // Course Code logic
-            if (cleanLine.match(/^\(/)) return; // Parenthesis info
+            if (cleanLine.startsWith("Exporté le")) return;
+            if (cleanLine.includes("documents autorisés")) return;
+            if (cleanLine.match(/^\d+h\d+/)) return;
+            if (cleanLine.match(/^\d+SN-/)) return;
+            if (cleanLine.match(/^\(/)) return;
 
-            // Assume it is a name if it passes filters?
-            // "Ouederni Meriem"
-
-            // Refined Heuristic: If it's not the title, and not known metadata
             if (cleanLine !== ev.title) {
                 if (!professors.has(cleanLine)) {
                     professors.set(cleanLine, new Set());
@@ -160,12 +207,26 @@ function renderProfessors() {
         const card = document.createElement('div');
         card.className = 'prof-card';
 
+        // CHECK UNSIGNED STATUS
+        if (appState.unsignedProfessors && appState.unsignedProfessors.has(name)) {
+            card.classList.add('unsigned');
+            // Add a visual indicator for "Not Signed" (e.g. Warning Icon)
+            card.innerHTML += `<div style="position: absolute; top: 10px; right: 10px; color: #e74c3c; font-weight: bold; font-size: 1.2rem;">⚠️</div>`;
+            card.style.borderLeft = "5px solid #e74c3c";
+            card.style.backgroundColor = "#fff0f0";
+        }
+
         const courseList = Array.from(courses).slice(0, 3).join(', ') + (courses.size > 3 ? '...' : '');
 
-        card.innerHTML = `
+        card.innerHTML += `
             <div class="prof-name">${name}</div>
             <div class="prof-course">${courses.size} cours : ${courseList}</div>
         `;
+
+        // ADD CLICK EVENT
+        card.addEventListener('click', () => openProfPopup(name));
+        card.style.cursor = 'pointer';
+
         professorsList.appendChild(card);
     });
 }
@@ -339,18 +400,37 @@ function renderWeekEvents(startOfWeek) {
 
                 // Color based on title hash
                 const hue = hashStringToHue(ev.title);
-                // Darkened from 90% to 80% lightness, and added border for contrast
-                eventElement.style.backgroundColor = `hsla(${hue}, 70%, 80%, 0.85)`; // slightly more transparent for overlaps
-                eventElement.style.borderLeft = `3px solid hsla(${hue}, 70%, 40%, 1)`;
-                eventElement.style.borderRight = `1px solid hsla(${hue}, 70%, 40%, 0.2)`;
-                eventElement.style.borderTop = `1px solid hsla(${hue}, 70%, 40%, 0.2)`;
-                eventElement.style.borderBottom = `1px solid hsla(${hue}, 70%, 40%, 0.2)`;
+                let bgColor = `hsla(${hue}, 70%, 80%, 0.85)`;
+                let borderColor = `hsla(${hue}, 70%, 40%, 1)`;
 
-                // Check if skipped
+                // CHECK IF PROFESSOR IS UNSIGNED
+                if (ev.description && appState.unsignedProfessors) {
+                    // We need to check if ANY professor associated with this event is in the unsigned list
+                    // We use the same extraction logic "on the fly" or just check string inclusion for speed
+                    // Optimally, we iterate the Set and check if description contains the name
+                    for (const profName of appState.unsignedProfessors) {
+                        if (ev.description.includes(profName)) {
+                            // Override color for Not Signed
+                            bgColor = "#e74c3c"; // Red/Orange
+                            borderColor = "#c0392b";
+                            eventElement.style.color = "white"; // White text for better contrast on red
+                            break;
+                        }
+                    }
+                }
+
+                eventElement.style.backgroundColor = bgColor;
+                eventElement.style.borderLeft = `3px solid ${borderColor}`;
+                eventElement.style.borderRight = `1px solid ${borderColor}`; // simplify border
+                eventElement.style.borderTop = `1px solid ${borderColor}`;
+                eventElement.style.borderBottom = `1px solid ${borderColor}`;
+
+                // Check if skipped (override again if strict)
                 const evId = getEventId(ev);
                 if (appState.skippedEventIds.has(evId)) {
                     eventElement.style.border = "2px solid red";
                     eventElement.style.backgroundColor = "#ffe6e6"; // Light red background
+                    eventElement.style.color = "black"; // Reset text color
                 }
 
                 // Add click event

@@ -13,7 +13,7 @@
     <div id="userInfo" style="display:none; font-size: 1rem;">
       <span id="usernameDisplay"></span>
       <div style="display: flex; flex-direction: column; align-items: flex-end; margin-left: 10px; gap: 5px;">
-        <button id="logoutBtn" class="btn" style="background:#ff4d4d;">Déconnexion</button>
+        <button id="logoutBtn" class="btn">Déconnexion</button>
         <div style="position: relative;">
           <button id="gestionBtn" class="btn"
             style="background-color: #6c5ce7; font-size: 0.9rem; padding: 5px 10px;">Gestion ▼</button>
@@ -251,6 +251,20 @@
         <button id="skipButton" class="skip-btn">Absent</button>
         <button id="unskipButton" class="unskip-btn">Présent</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Popup Signature Professeur -->
+  <div id="profPopup" class="popup"
+    style="display: none; background: rgba(0,0,0,0.5); z-index: 10001; align-items: center; justify-content: center;">
+    <div class="popup-content" style="max-width: 400px; text-align: center;">
+      <h3 id="profPopupTitle">Nom du Professeur</h3>
+      <p>Avez-vous fait signer ce professeur ?</p>
+      <div style="display: flex; gap: 10px; justify-content: center; margin-top: 20px;">
+        <button id="profSignBtn" class="btn" style="background-color: #2ecc71;">Fait signer</button>
+        <button id="profUnsignBtn" class="btn" style="background-color: #e74c3c;">Ne fait pas signer</button>
+      </div>
+      <button id="closeProfPopup" class="btn" style="margin-top: 20px; background-color: #95a5a6;">Fermer</button>
     </div>
   </div>
 

@@ -710,3 +710,15 @@ hr {
   color: #636e72;
   font-style: italic;
 }
+
+/* Logout Button Custom Style */
+#logoutBtn {
+  background-color: #e17055;
+  /* Terracotta/Softer Red */
+  color: white;
+  transition: background-color 0.3s;
+}
+
+#logoutBtn:hover {
+  background-color: #d63031;
+}

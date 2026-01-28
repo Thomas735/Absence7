@@ -27,7 +27,7 @@ export function switchCalendar(id) {
     // Sync global state for ICS parsing
     appState.icsFileContent = cal.icsFileContent;
     appState.skippedEventIds = cal.skippedEventIds; // Update global reference
-    appState.signedProfessors = cal.signedProfessors; // Default to Set if exists, else init
+    appState.unsignedProfessors = cal.unsignedProfessors; // Default to Set if exists, else init
 
     // Parse events for this calendar
     if (cal.icsFileContent) {
@@ -48,7 +48,7 @@ export function addCalendar(name) {
         icsFileName: null,
         lastCalendarView: 'month',
         skippedEventIds: new Set(),
-        signedProfessors: new Set()
+        unsignedProfessors: new Set()
     };
     appState.calendars.push(newCal);
     if (!appState.currentCalendarId) {
@@ -81,7 +81,7 @@ export async function saveProgress() {
     const calendarsToSave = appState.calendars.map(cal => ({
         ...cal,
         skippedEventIds: Array.from(cal.skippedEventIds),
-        signedProfessors: Array.from(cal.signedProfessors || [])
+        unsignedProfessors: Array.from(cal.unsignedProfessors || [])
     }));
 
     const dataToSave = {
@@ -148,7 +148,7 @@ function applyData(data) {
         appState.calendars = data.calendars.map(c => ({
             ...c,
             skippedEventIds: new Set(c.skippedEventIds), // Hydrate Set
-            signedProfessors: new Set(c.signedProfessors || []) // Hydrate Set
+            unsignedProfessors: new Set(c.unsignedProfessors || []) // Hydrate Set
         }));
     }
 
@@ -168,7 +168,7 @@ function migrateOldFormat(oldData) {
         icsFileContent: oldData.icsFileContent || null,
         icsFileName: oldData.icsFileName || null,
         skippedEventIds: new Set(oldData.skippedEventIds || []),
-        signedProfessors: new Set()
+        unsignedProfessors: new Set()
     };
 
     appState.calendars = [defaultCal];
