@@ -250,6 +250,18 @@ function renderCalendar(year, month) {
             dayElement.className = 'calendar-day';
             dayElement.innerHTML = `<div class="day-number">${dayNumber}</div><div class="day-events"></div>`;
 
+            // NAVIGATION: Click on day navigates to that Week
+            const clickedDate = new Date(year, month, dayNumber);
+            dayElement.addEventListener('click', (e) => {
+                // Prevent navigation if clicking on a specific event (handled by event listeners below)
+                if (e.target.closest('.event')) return;
+
+                appState.currentDate = clickedDate;
+                switchView('week');
+                updateDisplay(); // Ensure full refresh
+            });
+            dayElement.style.cursor = 'pointer';
+
             const dayEvents = appState.events.filter(event => {
                 const eventDate = event.start;
                 return eventDate.getDate() === dayNumber &&

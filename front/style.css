@@ -691,6 +691,8 @@ hr {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
   border-left: 5px solid #0984e3;
   transition: transform 0.2s;
+  position: relative;
+  /* Fixes floating warning icon icon */
 }
 
 .prof-card:hover {

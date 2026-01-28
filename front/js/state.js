@@ -141,8 +141,12 @@ export async function loadProgress() {
 }
 
 function applyData(data) {
-    if (data.currentDate) appState.currentDate = new Date(data.currentDate);
-    if (data.currentView) appState.currentView = data.currentView;
+    // FORCE DEFAULT BEHAVIOR ON REFRESH:
+    // We do NOT restore currentDate or currentView from saved data.
+    // appState.currentDate and appState.currentView remain at their defaults (Now, 'month').
+
+    // if (data.currentDate) appState.currentDate = new Date(data.currentDate);
+    // if (data.currentView) appState.currentView = data.currentView;
 
     if (data.calendars) {
         appState.calendars = data.calendars.map(c => ({
