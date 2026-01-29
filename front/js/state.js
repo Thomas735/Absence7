@@ -111,6 +111,15 @@ export async function addCalendar(name, subscriptionUrl = null) {
     return newId;
 }
 
+export function renameCalendar(id, newName) {
+    const cal = appState.calendars.find(c => c.id === id);
+    if (!cal) return;
+
+    cal.name = newName;
+    saveProgress();
+    updateDisplay(); // Will update title
+}
+
 export async function refreshCalendar(id) {
     const cal = appState.calendars.find(c => c.id === id);
     if (!cal || !cal.subscriptionUrl) return;

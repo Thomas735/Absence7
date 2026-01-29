@@ -1,4 +1,4 @@
-import { appState, loadProgress, saveProgress, getCurrentCalendar, addCalendar, deleteCalendar, switchCalendar, refreshCalendar, addManualEvent } from './state.js';
+import { appState, loadProgress, saveProgress, getCurrentCalendar, addCalendar, deleteCalendar, switchCalendar, refreshCalendar, addManualEvent, renameCalendar } from './state.js';
 import { initView, updateDisplay, switchView } from './view.js';
 import { initEventPopup } from './eventManager.js';
 import { parseICS } from './ics.js';
@@ -13,6 +13,7 @@ document.addEventListener("DOMContentLoaded", async function () {
     const addCalBtn = document.getElementById("addCalBtn");
     const delCalBtn = document.getElementById("delCalBtn");
     const professorsBtn = document.getElementById("professorsBtn");
+    const renameCalBtn = document.getElementById("renameCalBtn");
     const backToCalendarBtn = document.getElementById("backToCalendarBtn");
 
     // Add Activity UI
@@ -210,6 +211,20 @@ document.addEventListener("DOMContentLoaded", async function () {
         switchView('professors');
         gestionDropdown.style.display = 'none'; // Close dropdown
     });
+
+    if (renameCalBtn) {
+        renameCalBtn.addEventListener('click', () => {
+            const cal = getCurrentCalendar();
+            if (!cal) return;
+
+            const newName = prompt("Nouveau nom du calendrier :", cal.name);
+            if (newName && newName.trim() !== "") {
+                renameCalendar(cal.id, newName.trim());
+                renderCalendarList(); // Logic to refresh name in list
+            }
+            gestionDropdown.style.display = 'none';
+        });
+    }
 
     backToCalendarBtn.addEventListener('click', () => {
         switchView('month'); // Return to default view
