@@ -1,4 +1,4 @@
-import { appState, loadProgress, saveProgress, getCurrentCalendar, addCalendar, deleteCalendar, switchCalendar } from './state.js';
+import { appState, loadProgress, saveProgress, getCurrentCalendar, addCalendar, deleteCalendar, switchCalendar, refreshCalendar } from './state.js';
 import { initView, updateDisplay, switchView } from './view.js';
 import { initEventPopup } from './eventManager.js';
 import { parseICS } from './ics.js';
@@ -115,7 +115,38 @@ document.addEventListener("DOMContentLoaded", async function () {
 
         appState.calendars.forEach(cal => {
             const li = document.createElement('li');
-            li.textContent = cal.name;
+
+            // Container for Name + Refresh Button
+            const contentDiv = document.createElement('div');
+            contentDiv.style.display = 'flex';
+            contentDiv.style.justifyContent = 'space-between';
+            contentDiv.style.alignItems = 'center';
+            contentDiv.style.width = '100%';
+
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = cal.name;
+            contentDiv.appendChild(nameSpan);
+
+            if (cal.subscriptionUrl) {
+                const refreshBtn = document.createElement('button');
+                refreshBtn.innerHTML = '↻'; // Refresh icon
+                refreshBtn.title = "Actualiser l'abonnement";
+                refreshBtn.className = 'btn small-btn';
+                refreshBtn.style.padding = '2px 6px';
+                refreshBtn.style.fontSize = '0.8rem';
+                refreshBtn.style.marginLeft = '8px';
+
+                refreshBtn.onclick = async (e) => {
+                    e.stopPropagation();
+                    refreshBtn.classList.add('rotating'); // Add spinning class if css exists, or just visual feedback
+                    await refreshCalendar(cal.id);
+                    refreshBtn.classList.remove('rotating');
+                };
+                contentDiv.appendChild(refreshBtn);
+            }
+
+            li.appendChild(contentDiv);
+
             if (cal.id === appState.currentCalendarId) {
                 li.classList.add('active');
             }
@@ -146,11 +177,12 @@ document.addEventListener("DOMContentLoaded", async function () {
     });
 
     // Add Calendar
-    addCalBtn.addEventListener('click', (e) => {
+    addCalBtn.addEventListener('click', async (e) => {
         e.stopPropagation();
         const name = prompt("Nom du nouveau calendrier :");
         if (name) {
-            addCalendar(name);
+            const url = prompt("URL de l'abonnement ICS (facultatif, laisser vide pour un calendrier local) :");
+            await addCalendar(name, url ? url.trim() : null);
             renderCalendarList();
         }
     });

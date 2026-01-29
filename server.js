@@ -155,6 +155,23 @@ app.get("/api/load", authenticateToken, (req, res) => {
   }
 });
 
+// Proxy pour récupérer un ICS externe (contourne CORS)
+app.get("/api/proxy", async (req, res) => {
+  const url = req.query.url;
+  if (!url) return res.status(400).json({ error: "URL manquante" });
+
+  try {
+    // Utilise native fetch (Node 18+)
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`Status ${response.status}`);
+    const text = await response.text();
+    res.send(text);
+  } catch (err) {
+    console.error("Erreur proxy:", err);
+    res.status(500).json({ error: "Impossible de récupérer le calendrier" });
+  }
+});
+
 // Route pour toutes les requêtes (SPA fallback)
 app.get("*", (req, res) => {
   res.sendFile(path.join(__dirname, "front", "index.html"));

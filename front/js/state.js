@@ -18,7 +18,7 @@ export function getCurrentCalendar() {
     return appState.calendars.find(c => c.id === appState.currentCalendarId);
 }
 
-export function switchCalendar(id) {
+export async function switchCalendar(id) {
     const cal = appState.calendars.find(c => c.id === id);
     if (!cal) return;
 
@@ -32,6 +32,14 @@ export function switchCalendar(id) {
     // Parse events for this calendar
     if (cal.icsFileContent) {
         parseICS(cal.icsFileContent);
+    } else if (cal.subscriptionUrl) {
+        // Auto-refresh if empty or stale? For now, we rely on cached content or manual refresh
+        // But if content is missing but URL exists, try to fetch
+        if (!cal.icsFileContent) {
+            await refreshCalendar(id);
+        } else {
+            parseICS(cal.icsFileContent);
+        }
     } else {
         appState.events = []; // Clear events if no content
     }
@@ -39,11 +47,12 @@ export function switchCalendar(id) {
     updateDisplay();
 }
 
-export function addCalendar(name) {
+export async function addCalendar(name, subscriptionUrl = null) {
     const newId = 'cal_' + Date.now();
     const newCal = {
         id: newId,
         name: name,
+        subscriptionUrl: subscriptionUrl,
         icsFileContent: null,
         icsFileName: null,
         lastCalendarView: 'month',
@@ -51,11 +60,44 @@ export function addCalendar(name) {
         unsignedProfessors: new Set()
     };
     appState.calendars.push(newCal);
+
+    if (subscriptionUrl) {
+        // Try to fetch immediately
+        await refreshCalendar(newId);
+    }
+
     if (!appState.currentCalendarId) {
         switchCalendar(newId);
     }
     saveProgress();
     return newId;
+}
+
+export async function refreshCalendar(id) {
+    const cal = appState.calendars.find(c => c.id === id);
+    if (!cal || !cal.subscriptionUrl) return;
+
+    try {
+        const res = await fetch(`/api/proxy?url=${encodeURIComponent(cal.subscriptionUrl)}`);
+        if (res.ok) {
+            const text = await res.text();
+            cal.icsFileContent = text;
+            console.log(`Updated calendar ${cal.name} from URL`);
+
+            // If currently active, re-parse
+            if (appState.currentCalendarId === id) {
+                parseICS(cal.icsFileContent);
+                updateDisplay();
+            }
+            saveProgress();
+        } else {
+            console.error("Failed to refresh calendar");
+            alert("Erreur lors de l'actualisation du calendrier");
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Erreur réseau lors de l'actualisation");
+    }
 }
 
 export function deleteCalendar(id) {
@@ -154,6 +196,15 @@ function applyData(data) {
             skippedEventIds: new Set(c.skippedEventIds), // Hydrate Set
             unsignedProfessors: new Set(c.unsignedProfessors || []) // Hydrate Set
         }));
+
+        // AUTO-REFRESH SUBSCRIPTIONS ON LOAD
+        // non-blocking (async) to let the UI load first
+        appState.calendars.forEach(cal => {
+            if (cal.subscriptionUrl) {
+                console.log(`Auto-refreshing calendar: ${cal.name}`);
+                refreshCalendar(cal.id);
+            }
+        });
     }
 
     if (data.currentCalendarId) {
@@ -172,7 +223,7 @@ function migrateOldFormat(oldData) {
         icsFileContent: oldData.icsFileContent || null,
         icsFileName: oldData.icsFileName || null,
         skippedEventIds: new Set(oldData.skippedEventIds || []),
-        unsignedProfessors: new Set()
+        unsignedProfessors: new Set(oldData.unsignedProfessors || [])
     };
 
     appState.calendars = [defaultCal];
