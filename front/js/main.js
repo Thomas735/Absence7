@@ -1,4 +1,4 @@
-import { appState, loadProgress, saveProgress, getCurrentCalendar, addCalendar, deleteCalendar, switchCalendar, refreshCalendar } from './state.js';
+import { appState, loadProgress, saveProgress, getCurrentCalendar, addCalendar, deleteCalendar, switchCalendar, refreshCalendar, addManualEvent } from './state.js';
 import { initView, updateDisplay, switchView } from './view.js';
 import { initEventPopup } from './eventManager.js';
 import { parseICS } from './ics.js';
@@ -14,6 +14,12 @@ document.addEventListener("DOMContentLoaded", async function () {
     const delCalBtn = document.getElementById("delCalBtn");
     const professorsBtn = document.getElementById("professorsBtn");
     const backToCalendarBtn = document.getElementById("backToCalendarBtn");
+
+    // Add Activity UI
+    const openAddActivityBtn = document.getElementById("openAddActivityBtn");
+    const addActivityPopup = document.getElementById("addActivityPopup");
+    const closeAddActivityPopup = document.getElementById("closeAddActivityPopup");
+    const addActivityForm = document.getElementById("addActivityForm");
 
     const fileInput = document.getElementById("fileInput");
     const prevBtn = document.getElementById("prevBtn");
@@ -208,6 +214,102 @@ document.addEventListener("DOMContentLoaded", async function () {
     backToCalendarBtn.addEventListener('click', () => {
         switchView('month'); // Return to default view
     });
+
+
+    // --- ADD ACTIVITY LOGIC ---
+    if (openAddActivityBtn) {
+        openAddActivityBtn.addEventListener('click', () => {
+            const cal = getCurrentCalendar();
+            if (!cal) {
+                alert("Veuillez d'abord sélectionner ou créer un calendrier.");
+                return;
+            }
+            gestionDropdown.style.display = 'none'; // Close menu
+            addActivityPopup.style.display = 'flex';
+        });
+    }
+
+    if (closeAddActivityPopup) {
+        closeAddActivityPopup.addEventListener('click', () => {
+            addActivityPopup.style.display = 'none';
+        });
+    }
+
+    if (addActivityForm) {
+        addActivityForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const cal = getCurrentCalendar();
+            if (!cal) return;
+
+            const name = document.getElementById('actName').value;
+            const prof = document.getElementById('actProf').value;
+            const dayOfWeek = parseInt(document.getElementById('actDay').value); // 0=Sun, 1=Mon...
+            const timeStr = document.getElementById('actTime').value; // "HH:MM"
+            const durationMins = parseInt(document.getElementById('actDuration').value);
+            const isRecurring = document.getElementById('actRepeat').checked;
+
+            if (!name || !timeStr) return;
+
+            const [hours, minutes] = timeStr.split(':').map(Number);
+
+            // Calculate Start Date based on Current Week or Next occurrence
+            // Strategy: Start from *current viewing week* or *today*? 
+            // Let's start from the Monday of the current "currentDate" being viewed/stored in state
+            // to ensure it appears where the user is looking, OR just finding the next occurrence from today.
+            // Requirement says "Semester", so let's start from Today/Current Week and go forward.
+
+            // Let's pick the Monday of the current appState.currentDate (which usually tracks the view)
+            const refDate = new Date(appState.currentDate);
+            // Reset to Monday of that week
+            const currentDay = refDate.getDay();
+            const diff = refDate.getDate() - currentDay + (currentDay === 0 ? -6 : 1);
+            refDate.setDate(diff);
+            refDate.setHours(0, 0, 0, 0);
+
+            // Now find the target day in this week
+            // dayOfWeek: 1=Mon ... 0=Sun. 
+            // Our refDate is Monday. 
+            // If target is Mon (1), offset is 0.
+            // If target is Tue (2), offset is 1.
+            // If target is Sun (0), offset is 6.
+            let dayOffset = 0;
+            if (dayOfWeek === 0) dayOffset = 6;
+            else dayOffset = dayOfWeek - 1;
+
+            const startDate = new Date(refDate);
+            startDate.setDate(startDate.getDate() + dayOffset);
+            startDate.setHours(hours, minutes, 0, 0);
+
+            // Generate Events
+            const eventsToAdd = [];
+            const weeksToGenerate = isRecurring ? 24 : 1; // ~6 months for semester
+
+            for (let i = 0; i < weeksToGenerate; i++) {
+                const start = new Date(startDate);
+                start.setDate(startDate.getDate() + (i * 7));
+
+                const end = new Date(start);
+                end.setMinutes(end.getMinutes() + durationMins);
+
+                eventsToAdd.push({
+                    title: name,
+                    description: prof ? `${prof}` : '', // Simple description with Prof name
+                    start: start,
+                    end: end
+                });
+            }
+
+            // Batch add ? The state helper currently adds one by one, let's just loop
+            // In a real app we'd bulk add, but here loop is fine or we modify state helper.
+            // Let's just modify the helper to accept an array? 
+            // Or just loop here. Performance is negligible for 24 items.
+            eventsToAdd.forEach(ev => addManualEvent(cal.id, ev));
+
+            addActivityPopup.style.display = 'none';
+            addActivityForm.reset();
+            alert(`${eventsToAdd.length} activité(s) ajoutée(s).`);
+        });
+    }
 
 
     // --- STANDARD NAVIGATION ---

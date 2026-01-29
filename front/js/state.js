@@ -27,24 +27,59 @@ export async function switchCalendar(id) {
     // Sync global state for ICS parsing
     appState.icsFileContent = cal.icsFileContent;
     appState.skippedEventIds = cal.skippedEventIds; // Update global reference
+    appState.skippedEventIds = cal.skippedEventIds; // Update global reference
     appState.unsignedProfessors = cal.unsignedProfessors; // Default to Set if exists, else init
 
     // Parse events for this calendar
+    let parsedEvents = [];
     if (cal.icsFileContent) {
-        parseICS(cal.icsFileContent);
+        parseICS(cal.icsFileContent); // Sets appState.events
+        parsedEvents = [...appState.events];
     } else if (cal.subscriptionUrl) {
-        // Auto-refresh if empty or stale? For now, we rely on cached content or manual refresh
-        // But if content is missing but URL exists, try to fetch
         if (!cal.icsFileContent) {
             await refreshCalendar(id);
+            // Refresh calls parseICS so events are already set
+            parsedEvents = [...appState.events];
         } else {
             parseICS(cal.icsFileContent);
+            parsedEvents = [...appState.events];
         }
     } else {
-        appState.events = []; // Clear events if no content
+        parsedEvents = [];
     }
 
+    // MERGE MANUAL EVENTS
+    // Ensure dates are Date objects
+    const manuals = (cal.manualEvents || []).map(ev => ({
+        ...ev,
+        start: new Date(ev.start),
+        end: new Date(ev.end)
+    }));
+
+    appState.events = [...parsedEvents, ...manuals];
+
     updateDisplay();
+}
+
+export function addManualEvent(calendarId, eventData) {
+    const cal = appState.calendars.find(c => c.id === calendarId);
+    if (!cal) return;
+
+    if (!cal.manualEvents) cal.manualEvents = [];
+    cal.manualEvents.push(eventData);
+
+    // Refresh current view if we modified the active calendar
+    if (appState.currentCalendarId === calendarId) {
+        // We just append to current appState.events for immediate feedback
+        // But switchCalendar logic cleans it up properly on reload
+        appState.events.push({
+            ...eventData,
+            start: new Date(eventData.start),
+            end: new Date(eventData.end)
+        });
+        updateDisplay();
+    }
+    saveProgress();
 }
 
 export async function addCalendar(name, subscriptionUrl = null) {
@@ -57,7 +92,10 @@ export async function addCalendar(name, subscriptionUrl = null) {
         icsFileName: null,
         lastCalendarView: 'month',
         skippedEventIds: new Set(),
-        unsignedProfessors: new Set()
+        lastCalendarView: 'month',
+        skippedEventIds: new Set(),
+        unsignedProfessors: new Set(),
+        manualEvents: [] // Array of { title, start, end, description }
     };
     appState.calendars.push(newCal);
 
@@ -84,9 +122,18 @@ export async function refreshCalendar(id) {
             cal.icsFileContent = text;
             console.log(`Updated calendar ${cal.name} from URL`);
 
-            // If currently active, re-parse
+            // If currently active, re-parse and merge
             if (appState.currentCalendarId === id) {
-                parseICS(cal.icsFileContent);
+                parseICS(cal.icsFileContent); // Sets appState.events with parsed ONLY
+
+                // Merge Manuals
+                const manuals = (cal.manualEvents || []).map(ev => ({
+                    ...ev,
+                    start: new Date(ev.start),
+                    end: new Date(ev.end)
+                }));
+                appState.events = [...appState.events, ...manuals];
+
                 updateDisplay();
             }
             saveProgress();
@@ -194,7 +241,10 @@ function applyData(data) {
         appState.calendars = data.calendars.map(c => ({
             ...c,
             skippedEventIds: new Set(c.skippedEventIds), // Hydrate Set
-            unsignedProfessors: new Set(c.unsignedProfessors || []) // Hydrate Set
+            ...c,
+            skippedEventIds: new Set(c.skippedEventIds), // Hydrate Set
+            unsignedProfessors: new Set(c.unsignedProfessors || []), // Hydrate Set
+            manualEvents: c.manualEvents || []
         }));
 
         // AUTO-REFRESH SUBSCRIPTIONS ON LOAD

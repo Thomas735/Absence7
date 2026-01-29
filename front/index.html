@@ -27,6 +27,7 @@
               <button id="delCalBtn" class="btn small-btn" title="Supprimer">-</button>
             </div>
             <hr>
+            <button id="openAddActivityBtn" class="btn" style="background-color: #2ecc71;">Ajouter une activité</button>
             <button class="btn placeholder-btn">Paramètres</button>
             <button id="professorsBtn" class="btn" style="background-color: #0984e3;">Professeurs</button>
             <button class="btn placeholder-btn">Exporter PDF</button>
@@ -264,6 +265,58 @@
         <button id="profUnsignBtn" class="btn" style="background-color: #e74c3c;">Ne fait pas signer</button>
       </div>
       <button id="closeProfPopup" class="btn" style="margin-top: 20px; background-color: #95a5a6;">Fermer</button>
+    </div>
+  </div>
+
+  <!-- Popup Ajouter Activité -->
+  <div id="addActivityPopup" class="popup"
+    style="display: none; background: rgba(0,0,0,0.8); z-index: 10002; align-items: center; justify-content: center;">
+    <div class="popup-content" style="max-width: 400px;">
+      <span id="closeAddActivityPopup" class="close-popup">&times;</span>
+      <h3>Ajouter une activité</h3>
+      <form id="addActivityForm" style="display: flex; flex-direction: column; gap: 10px;">
+
+        <label>Nom de l'activité :
+          <input type="text" id="actName" required style="width: 100%; padding: 5px;">
+        </label>
+
+        <label>Professeur (Optionnel) :
+          <input type="text" id="actProf" style="width: 100%; padding: 5px;">
+        </label>
+
+        <label>Jour :
+          <select id="actDay" required style="width: 100%; padding: 5px;">
+            <option value="1">Lundi</option>
+            <option value="2">Mardi</option>
+            <option value="3">Mercredi</option>
+            <option value="4">Jeudi</option>
+            <option value="5">Vendredi</option>
+            <option value="6">Samedi</option>
+            <option value="0">Dimanche</option>
+          </select>
+        </label>
+
+        <label>Heure de début :
+          <input type="time" id="actTime" required style="width: 100%; padding: 5px;">
+        </label>
+
+        <label>Durée :
+          <select id="actDuration" required style="width: 100%; padding: 5px;">
+            <option value="60">1h00</option>
+            <option value="90">1h30</option>
+            <option value="120" selected>2h00</option>
+            <option value="150">2h30</option>
+            <option value="180">3h00</option>
+            <option value="240">4h00</option>
+          </select>
+        </label>
+
+        <label style="display: flex; align-items: center; gap: 10px;">
+          <input type="checkbox" id="actRepeat"> Répéter chaque semaine (Semestre)
+        </label>
+
+        <button type="submit" class="btn" style="margin-top: 10px;">Ajouter</button>
+      </form>
     </div>
   </div>
 
