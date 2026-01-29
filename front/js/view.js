@@ -2,7 +2,7 @@ import { appState, saveProgress } from './state.js';
 import { openEventPopup, closeEventPopup } from './eventManager.js';
 import { hashStringToHue, formatDate, getEventId } from './utils.js';
 
-let calendarGrid, currentDateDisplay, weekRangeDisplay, monthViewBtn, weekViewBtn, monthView, weekView, professorsView, professorsList, prevBtn, nextBtn;
+let calendarGrid, currentDateDisplay, weekRangeDisplay, monthViewBtn, weekViewBtn, monthView, weekView, professorsView, professorsList, prevBtn, nextBtn, calendarTitleDisplay;
 let profPopup, profPopupTitle, profSignBtn, profUnsignBtn, closeProfPopupBtn;
 let currentSelectedProf = null;
 
@@ -12,6 +12,7 @@ export function initView() {
     weekRangeDisplay = document.getElementById("weekRangeDisplay");
     monthViewBtn = document.getElementById("monthViewBtn");
     weekViewBtn = document.getElementById("weekViewBtn");
+    calendarTitleDisplay = document.getElementById("calendarTitleDisplay");
     monthView = document.getElementById("monthView");
     weekView = document.getElementById("weekView");
     professorsView = document.getElementById("professorsView");
@@ -81,6 +82,14 @@ export function switchView(view) {
 
 export function updateDisplay() {
     switchView(appState.currentView);
+    if (calendarTitleDisplay) {
+        const currentCal = appState.calendars.find(c => c.id === appState.currentCalendarId);
+        if (currentCal) {
+            calendarTitleDisplay.textContent = currentCal.name;
+        } else {
+            calendarTitleDisplay.textContent = "Mon Calendrier";
+        }
+    }
 }
 
 function updateMonthView() {
