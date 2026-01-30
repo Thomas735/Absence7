@@ -241,11 +241,20 @@
 
         <!-- Barre de progression -->
         <div class="progress-container">
-          <p><strong>Progression :</strong> <span id="progressPercentage">0%</span></p>
+          <p><strong>Total (Réelles) :</strong> <span id="progressPercentage">0%</span></p>
           <div class="progress-bar">
             <div id="progressBarFill" class="progress-bar-fill" style="width: 0%"></div>
           </div>
           <p id="progressText">0h sur 0h d'absence</p>
+        </div>
+
+        <div class="progress-container" style="margin-top: 10px;">
+          <p><strong>Comptabilisées (Signatures) :</strong> <span id="progressPercentageCounted">0%</span></p>
+          <div class="progress-bar">
+            <div id="progressBarFillCounted" class="progress-bar-fill" style="width: 0%; background-color: #2ecc71;">
+            </div>
+          </div>
+          <p id="progressTextCounted">0h sur 0h d'absence</p>
         </div>
 
         <!-- Bouton "Absent" -->

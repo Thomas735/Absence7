@@ -4,6 +4,7 @@ import { updateDisplay } from './view.js';
 
 let eventPopup, popupTitle, popupDate, popupTime, popupDescription;
 let progressBarFill, progressPercentage, progressText;
+let progressBarFillCounted, progressPercentageCounted, progressTextCounted;
 
 export function initEventPopup() {
     eventPopup = document.getElementById("eventPopup");
@@ -12,9 +13,9 @@ export function initEventPopup() {
     popupTime = document.getElementById("popupTime");
     popupDescription = document.getElementById("popupDescription");
 
-    progressBarFill = document.getElementById("progressBarFill");
-    progressPercentage = document.getElementById("progressPercentage");
-    progressText = document.getElementById("progressText");
+    progressBarFillCounted = document.getElementById("progressBarFillCounted");
+    progressPercentageCounted = document.getElementById("progressPercentageCounted");
+    progressTextCounted = document.getElementById("progressTextCounted");
 
     const closePopupBtn = document.querySelector(".close-popup");
 
@@ -63,6 +64,9 @@ export function openEventPopup(event) {
     const stats = getCourseStats(courseCode);
     const percentage = stats.totalDuration > 0 ? (stats.skippedDuration / stats.totalDuration) * 100 : 0;
     const progressPercentageVal = Math.min(100, Math.round(percentage));
+
+    const percentageCounted = stats.totalDuration > 0 ? (stats.skippedCountedDuration / stats.totalDuration) * 100 : 0;
+    const progressPercentageCountedVal = Math.min(100, Math.round(percentageCounted));
 
     popupTitle.textContent = title;
     popupDate.textContent = date;
@@ -115,7 +119,7 @@ export function openEventPopup(event) {
         });
     }
 
-    updateProgressBar(progressPercentageVal, stats.skippedDuration, stats.totalDuration);
+    updateProgressBar(progressPercentageVal, stats.skippedDuration, stats.totalDuration, progressPercentageCountedVal, stats.skippedCountedDuration);
 
     // Configure buttons
     const skipButton = document.getElementById("skipButton");
@@ -130,7 +134,9 @@ export function openEventPopup(event) {
             // Updated stats
             const newStats = getCourseStats(courseCode);
             const newPct = newStats.totalDuration > 0 ? (newStats.skippedDuration / newStats.totalDuration) * 100 : 0;
-            updateProgressBar(Math.round(newPct), newStats.skippedDuration, newStats.totalDuration);
+            const newPctCounted = newStats.totalDuration > 0 ? (newStats.skippedCountedDuration / newStats.totalDuration) * 100 : 0;
+
+            updateProgressBar(Math.round(newPct), newStats.skippedDuration, newStats.totalDuration, Math.round(newPctCounted), newStats.skippedCountedDuration);
             saveProgress();
             updateDisplay();
         }
@@ -143,7 +149,9 @@ export function openEventPopup(event) {
             // Updated stats
             const newStats = getCourseStats(courseCode);
             const newPct = newStats.totalDuration > 0 ? (newStats.skippedDuration / newStats.totalDuration) * 100 : 0;
-            updateProgressBar(Math.round(newPct), newStats.skippedDuration, newStats.totalDuration);
+            const newPctCounted = newStats.totalDuration > 0 ? (newStats.skippedCountedDuration / newStats.totalDuration) * 100 : 0;
+
+            updateProgressBar(Math.round(newPct), newStats.skippedDuration, newStats.totalDuration, Math.round(newPctCounted), newStats.skippedCountedDuration);
             saveProgress();
             updateDisplay();
         }
@@ -163,6 +171,7 @@ export function closeEventPopup() {
 function getCourseStats(targetCourseCode) {
     let totalDuration = 0;
     let skippedDuration = 0;
+    let skippedCountedDuration = 0;
 
     appState.events.forEach(ev => {
         const code = extractCourseCode(ev.title, ev.description);
@@ -173,18 +182,40 @@ function getCourseStats(targetCourseCode) {
             const evId = getEventId(ev);
             if (appState.skippedEventIds.has(evId)) {
                 skippedDuration += duration;
+
+                // Check if this absence should be COUNTED (i.e., NO professor is unsigned)
+                let isUnsigned = false;
+                if (ev.description && appState.unsignedProfessors && appState.unsignedProfessors.size > 0) {
+                    for (const profName of appState.unsignedProfessors) {
+                        if (ev.description.includes(profName)) {
+                            isUnsigned = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (!isUnsigned) {
+                    skippedCountedDuration += duration;
+                }
             }
         }
     });
 
-    return { totalDuration, skippedDuration };
+    return { totalDuration, skippedDuration, skippedCountedDuration };
 }
 
-function updateProgressBar(percentage, hoursSkipped, totalHours) {
+function updateProgressBar(percentage, hoursSkipped, totalHours, percentageCounted, hoursSkippedCounted) {
     if (progressBarFill && progressPercentage && progressText) {
         progressBarFill.style.width = `${percentage}%`;
         progressBarFill.textContent = `${percentage}%`;
         progressPercentage.textContent = `${percentage}%`;
         progressText.textContent = `${hoursSkipped.toFixed(1)}h sur ${totalHours.toFixed(1)}h d'absence`;
+    }
+
+    if (progressBarFillCounted && progressPercentageCounted && progressTextCounted) {
+        progressBarFillCounted.style.width = `${percentageCounted}%`;
+        progressBarFillCounted.textContent = `${percentageCounted}%`;
+        progressPercentageCounted.textContent = `${percentageCounted}%`;
+        progressTextCounted.textContent = `${hoursSkippedCounted.toFixed(1)}h sur ${totalHours.toFixed(1)}h comptabilisées`;
     }
 }
