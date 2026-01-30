@@ -1,4 +1,4 @@
-import { appState, loadProgress, saveProgress, getCurrentCalendar, addCalendar, deleteCalendar, switchCalendar, refreshCalendar, addManualEvent, renameCalendar } from './state.js';
+import { appState, loadProgress, saveProgress, getCurrentCalendar, addCalendar, deleteCalendar, switchCalendar, refreshCalendar, addManualEvent, renameCalendar, duplicateCalendar } from './state.js';
 import { initView, updateDisplay, switchView } from './view.js';
 import { initEventPopup } from './eventManager.js';
 import { parseICS } from './ics.js';
@@ -205,6 +205,21 @@ document.addEventListener("DOMContentLoaded", async function () {
             }
         }
     });
+
+    // Duplicate Calendar
+    const dupCalBtn = document.getElementById("dupCalBtn");
+    if (dupCalBtn) {
+        dupCalBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const cal = getCurrentCalendar();
+            if (cal) {
+                if (confirm(`Dupliquer le calendrier "${cal.name}" ?`)) {
+                    duplicateCalendar(cal.id);
+                    renderCalendarList();
+                }
+            }
+        });
+    }
 
     // Professors View Navigation
     professorsBtn.addEventListener('click', () => {

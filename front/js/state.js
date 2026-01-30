@@ -171,6 +171,29 @@ export function deleteCalendar(id) {
     saveProgress();
 }
 
+export function duplicateCalendar(id) {
+    const cal = appState.calendars.find(c => c.id === id);
+    if (!cal) return;
+
+    const newId = 'cal_' + Date.now();
+
+    // Deep copy of the calendar object
+    const newCal = {
+        ...cal,
+        id: newId,
+        name: cal.name + " (Copie)",
+        // Sets need to be new instances
+        skippedEventIds: new Set(cal.skippedEventIds),
+        unsignedProfessors: new Set(cal.unsignedProfessors),
+        // Arrays need to be new instances (deep copy manual events)
+        manualEvents: (cal.manualEvents || []).map(ev => ({ ...ev }))
+    };
+
+    appState.calendars.push(newCal);
+    switchCalendar(newId);
+    saveProgress();
+}
+
 // --- Persistence ---
 
 export async function saveProgress() {
