@@ -1,6 +1,6 @@
 import { appState, saveProgress } from './state.js';
 import { openEventPopup, closeEventPopup } from './eventManager.js';
-import { hashStringToHue, formatDate, getEventId } from './utils.js';
+import { hashStringToHue, formatDate, getEventId, isProfessorLine } from './utils.js';
 
 let calendarGrid, currentDateDisplay, weekRangeDisplay, monthViewBtn, weekViewBtn, monthView, weekView, professorsView, professorsList, prevBtn, nextBtn, calendarTitleDisplay;
 let profPopup, profPopupTitle, profSignBtn, profUnsignBtn, closeProfPopupBtn;
@@ -194,14 +194,7 @@ function renderProfessors() {
 
         lines.forEach(line => {
             const cleanLine = line.trim();
-            if (cleanLine.length < 3) return;
-            if (cleanLine.startsWith("Exporté le")) return;
-            if (cleanLine.includes("documents autorisés")) return;
-            if (cleanLine.match(/^\d+h\d+/)) return;
-            if (cleanLine.match(/^\d+SN-/)) return;
-            if (cleanLine.match(/^\(/)) return;
-
-            if (cleanLine !== ev.title) {
+            if (isProfessorLine(cleanLine, ev.title)) {
                 if (!professors.has(cleanLine)) {
                     professors.set(cleanLine, new Set());
                 }

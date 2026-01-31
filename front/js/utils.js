@@ -20,6 +20,20 @@ export function extractCourseCode(title, description) {
     return title; // Use title if no code found
 }
 
+export function isProfessorLine(line, eventTitle) {
+    const cleanLine = line.trim();
+    if (cleanLine.length < 3) return false;
+    if (cleanLine.startsWith("Exporté le")) return false;
+    if (cleanLine.includes("documents autorisés")) return false;
+    if (cleanLine.match(/^\d+h\d+/)) return false; // Duration like 2h00
+    if (cleanLine.match(/^\d+SN-/)) return false; // Group codes
+    if (cleanLine.match(/^\(/)) return false; // Parentheses
+
+    if (eventTitle && cleanLine === eventTitle) return false;
+
+    return true;
+}
+
 // CORRECTED TIME PARSING
 export function parseICSTime(str) {
     // Check if it ends in Z (UTC)

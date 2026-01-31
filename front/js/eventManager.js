@@ -1,5 +1,5 @@
 import { appState, saveProgress } from './state.js';
-import { extractCourseCode, getEventId } from './utils.js';
+import { extractCourseCode, getEventId, isProfessorLine } from './utils.js';
 import { updateDisplay } from './view.js';
 
 let eventPopup, popupTitle, popupDate, popupTime, popupDescription;
@@ -12,6 +12,11 @@ export function initEventPopup() {
     popupDate = document.getElementById("popupDate");
     popupTime = document.getElementById("popupTime");
     popupDescription = document.getElementById("popupDescription");
+
+    // Initialize Real Progress Bar Elements
+    progressBarFill = document.getElementById("progressBarFill");
+    progressPercentage = document.getElementById("progressPercentage");
+    progressText = document.getElementById("progressText");
 
     progressBarFillCounted = document.getElementById("progressBarFillCounted");
     progressPercentageCounted = document.getElementById("progressPercentageCounted");
@@ -82,17 +87,8 @@ export function openEventPopup(event) {
             const cleanLine = line.trim();
             const p = document.createElement('div');
 
-            // Check if this line looks like a professor name (reuse heuristic logic)
-            // Simple check: Not empty, not known metadata patterns
-            let isMetadata = false;
-            if (cleanLine.length < 3) isMetadata = true;
-            if (cleanLine.startsWith("Exporté le")) isMetadata = true;
-            if (cleanLine.includes("documents autorisés")) isMetadata = true;
-            if (cleanLine.match(/^\d+h\d+/)) isMetadata = true;
-            if (cleanLine.match(/^\d+SN-/)) isMetadata = true;
-            if (cleanLine.match(/^\(/)) isMetadata = true;
-
-            if (!isMetadata && cleanLine !== title) {
+            // Use shared logic for professor identification
+            if (isProfessorLine(cleanLine, title)) {
                 // Assume it's a professor or relevant info -> Make Clickable
                 const span = document.createElement('span');
                 span.textContent = cleanLine;
@@ -186,10 +182,15 @@ function getCourseStats(targetCourseCode) {
                 // Check if this absence should be COUNTED (i.e., NO professor is unsigned)
                 let isUnsigned = false;
                 if (ev.description && appState.unsignedProfessors && appState.unsignedProfessors.size > 0) {
-                    for (const profName of appState.unsignedProfessors) {
-                        if (ev.description.includes(profName)) {
-                            isUnsigned = true;
-                            break;
+                    const lines = ev.description.split('\n');
+                    for (const line of lines) {
+                        const cleanLine = line.trim();
+                        // Strict check using shared logic + exact match against unsigned list
+                        if (isProfessorLine(cleanLine, ev.title)) {
+                            if (appState.unsignedProfessors.has(cleanLine)) {
+                                isUnsigned = true;
+                                break;
+                            }
                         }
                     }
                 }
